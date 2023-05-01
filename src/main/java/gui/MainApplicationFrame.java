@@ -7,7 +7,10 @@ import java.awt.event.WindowEvent;
 
 import javax.swing.*;
 
+import language.LanguageTranslator;
 import log.Logger;
+
+import static language.LanguageTranslator.TRANSLATOR;
 
 /**
  * Что требуется сделать:
@@ -44,9 +47,9 @@ public class MainApplicationFrame extends JFrame {
     }
 
     static protected void confirmExitEvent() {
-        String[] options = {"Да", "Нет"};
-        int exit = JOptionPane.showOptionDialog(null, "Вы действительно хотите выйти?",
-                "Выход", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+        String[] options = {TRANSLATOR.translate("yes"), TRANSLATOR.translate("no")};
+        int exit = JOptionPane.showOptionDialog(null, TRANSLATOR.translate("exit_confirm"),
+                TRANSLATOR.translate("exit"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
         if (exit == 0)
             System.exit(0);
     }
@@ -66,7 +69,7 @@ public class MainApplicationFrame extends JFrame {
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
-        Logger.debug("Протокол работает");
+        Logger.debug(TRANSLATOR.translate("protocol_is_working"));
         return logWindow;
     }
 
