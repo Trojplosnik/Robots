@@ -5,12 +5,15 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import javax.swing.*;
-
-import language.LanguageTranslator;
 import log.Logger;
 
+import javax.swing.JFrame;
+import javax.swing.JDesktopPane;
+import javax.swing.JOptionPane;
+import javax.swing.JInternalFrame;
+
 import static language.LanguageTranslator.TRANSLATOR;
+import static configuration.SaveLoad.SAVELOAD;
 
 /**
  * Что требуется сделать:
@@ -18,7 +21,8 @@ import static language.LanguageTranslator.TRANSLATOR;
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  */
 public class MainApplicationFrame extends JFrame {
-    private final JDesktopPane desktopPane = new JDesktopPane();
+    private static final JDesktopPane desktopPane = new JDesktopPane();
+
 
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -31,11 +35,9 @@ public class MainApplicationFrame extends JFrame {
 
         setContentPane(desktopPane);
 
-        addWindow(createLogWindow());
+        createWindows();
 
-        addWindow(createGameWindow());
-
-        setJMenuBar(new MenuBar());
+        setJMenuBar(new MenuBar(this));
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -49,9 +51,14 @@ public class MainApplicationFrame extends JFrame {
     static protected void confirmExitEvent() {
         String[] options = {TRANSLATOR.translate("yes"), TRANSLATOR.translate("no")};
         int exit = JOptionPane.showOptionDialog(null, TRANSLATOR.translate("exit_confirm"),
-                TRANSLATOR.translate("exit"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
-        if (exit == 0)
+                TRANSLATOR.translate("exit"),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null, options, options[1]);
+        if (exit == 0){
+            SAVELOAD.save(desktopPane.getAllFrames());
             System.exit(0);
+        }
     }
 
     protected GameWindow createGameWindow() {
@@ -68,15 +75,33 @@ public class MainApplicationFrame extends JFrame {
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        Logger.debug(TRANSLATOR.translate("protocol_is_working"));
+        Logger.debug("The protocol works");
         return logWindow;
     }
 
     protected void addWindow(JInternalFrame frame) {
+        for (JInternalFrame currentFrame : desktopPane.getAllFrames()) {
+            if (currentFrame.getTitle().equals(frame.getTitle()))
+                return;
+        }
         desktopPane.add(frame);
         frame.setVisible(true);
     }
+
+    protected void createWindows() {
+        JInternalFrame[] frames = SAVELOAD.load();
+        if (frames != null){
+            for (JInternalFrame frame : frames) {
+                addWindow(frame);
+                setMinimumSize(frame.getSize());
+            }
+        }
+        else {
+            addWindow(createLogWindow());
+            addWindow(createGameWindow());
+        }
+    }
+
 
     //    protected JMenuBar createMenuBar() {
 //        JMenuBar menuBar = new JMenuBar();

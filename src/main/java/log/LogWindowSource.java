@@ -19,6 +19,8 @@ public class LogWindowSource {
     private final ArrayList<LogChangeListener> m_listeners;
     private static final Object syncKey = new Object();
 
+    private volatile LogChangeListener[] m_activeListeners;
+
     public LogWindowSource(int iQueueLength) {
         m_iQueueLength = iQueueLength;
         m_messages = new ArrayList<>(iQueueLength);
@@ -37,16 +39,42 @@ public class LogWindowSource {
         }
     }
 
-    public void append(LogLevel logLevel, String strMessage) {
+//    public void append(LogLevel logLevel, String strMessage) {
+//        LogEntry entry = new LogEntry(logLevel, strMessage);
+//        synchronized (syncKey) {
+//            if (m_messages.size() >= m_iQueueLength) {
+//                m_messages.remove(0);
+//            }
+//            m_messages.add(entry);
+//            for (LogChangeListener listener : m_listeners) {
+//                listener.onLogChanged();
+//            }
+//        }
+//    }
+
+    public void append(LogLevel logLevel, String strMessage)
+    {
         LogEntry entry = new LogEntry(logLevel, strMessage);
-        synchronized (syncKey) {
-            if (m_messages.size() >= m_iQueueLength) {
-                m_messages.remove(0);
+        if (m_messages.size() >= m_iQueueLength) {
+            m_messages.remove(0);
+        }
+        m_messages.add(entry);
+        LogChangeListener [] activeListeners = m_activeListeners;
+        if (activeListeners == null)
+        {
+            synchronized (m_listeners)
+            {
+                if (m_activeListeners == null)
+                {
+                    activeListeners = m_listeners.toArray(new LogChangeListener [0]);
+                    m_activeListeners = activeListeners;
+                }
             }
-            m_messages.add(entry);
-            for (LogChangeListener listener : m_listeners) {
-                listener.onLogChanged();
-            }
+        }
+        assert activeListeners != null;
+        for (LogChangeListener listener : activeListeners)
+        {
+            listener.onLogChanged();
         }
     }
 
