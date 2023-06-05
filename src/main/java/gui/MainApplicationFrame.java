@@ -5,7 +5,8 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import log.Logger;
+import model.log.Logger;
+import model.state.GameModel;
 
 import javax.swing.JFrame;
 import javax.swing.JDesktopPane;
@@ -23,6 +24,8 @@ import static configuration.SaveLoad.SAVELOAD;
 public class MainApplicationFrame extends JFrame {
     private static final JDesktopPane desktopPane = new JDesktopPane();
 
+
+    private static final GameModel robotModel = new GameModel();
 
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
@@ -62,7 +65,7 @@ public class MainApplicationFrame extends JFrame {
     }
 
     protected GameWindow createGameWindow() {
-        GameWindow gameWindow = new GameWindow();
+        GameWindow gameWindow = new GameWindow(robotModel, TRANSLATOR.translate("game_field"));
         gameWindow.setSize(600, 600);
         int x = (this.getWidth() - gameWindow.getWidth()) / 2;
         int y = (this.getHeight() - gameWindow.getHeight()) / 2;
@@ -71,12 +74,19 @@ public class MainApplicationFrame extends JFrame {
     }
 
     protected LogWindow createLogWindow() {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
+        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource(), TRANSLATOR.translate("work_protocol"));
         logWindow.setLocation(10, 10);
         logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
         Logger.debug("The protocol works");
+        setMinimumSize(logWindow.getSize());
         return logWindow;
+    }
+
+    protected RobotsPositionWindow createRobotsPositionWindow() {
+        RobotsPositionWindow posWindow = new RobotsPositionWindow(robotModel, TRANSLATOR.translate("coordinates"));
+        posWindow.setLocation(350, 10);
+        posWindow.setSize(300, 800);
+        return posWindow;
     }
 
     protected void addWindow(JInternalFrame frame) {
@@ -89,16 +99,19 @@ public class MainApplicationFrame extends JFrame {
     }
 
     protected void createWindows() {
-        JInternalFrame[] frames = SAVELOAD.load();
+        JInternalFrame[] frames = SAVELOAD.load(robotModel);
         if (frames != null){
             for (JInternalFrame frame : frames) {
                 addWindow(frame);
-                setMinimumSize(frame.getSize());
+                if (frame.getTitle().equals(TRANSLATOR.translate("work_protocol")))
+                    setMinimumSize(frame.getSize());
+
             }
         }
         else {
             addWindow(createLogWindow());
             addWindow(createGameWindow());
+            addWindow(createRobotsPositionWindow());
         }
     }
 

@@ -3,7 +3,9 @@ package configuration;
 
 import gui.GameWindow;
 import gui.LogWindow;
-import log.Logger;
+import gui.RobotsPositionWindow;
+import model.log.Logger;
+import model.state.GameModel;
 
 import javax.swing.JInternalFrame;
 import java.io.File;
@@ -51,7 +53,8 @@ public class SaveLoad {
 
         for (int i = 0; i < frames.length; i++) {
             frameDataStorages[i] = new FrameDataStorage(frames[i].getTitle(),
-                    frames[i].isClosed(), frames[i].isIcon(), frames[i].getBounds());
+                    frames[i].isClosed(), frames[i].isIcon(),
+                    frames[i].getBounds());
         }
 
 
@@ -62,7 +65,7 @@ public class SaveLoad {
         }
     }
 
-    public JInternalFrame[] load() {
+    public JInternalFrame[] load(GameModel robotModel) {
         JInternalFrame[] frames;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
 
@@ -70,23 +73,25 @@ public class SaveLoad {
             frames = new JInternalFrame[frameDataStorages.length];
             for (int i = 0; i < frameDataStorages.length; i++) {
                 if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("game_field"))) {
-                    frames[i] = new GameWindow();
+                    frames[i] = new GameWindow(robotModel, frameDataStorages[i].getTitle());
                 } else if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("work_protocol"))) {
-                    frames[i] = new LogWindow(Logger.getDefaultLogSource());
+                    frames[i] = new LogWindow(Logger.getDefaultLogSource(), frameDataStorages[i].getTitle());
                     Logger.debug("The protocol works");
+                } else if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("coordinates"))) {
+                    frames[i] = new RobotsPositionWindow(robotModel, frameDataStorages[i].getTitle());
                 } else {
                     throw new IllegalStateException("Unexpected value: " + frameDataStorages[i].getTitle());
                 }
                 frames[i].setTitle(frameDataStorages[i].getTitle());
                 frames[i].setBounds(frameDataStorages[i].getBounds());
-                frames[i].setClosed(frameDataStorages[i].isIcon());
-                frames[i].setIcon(frameDataStorages[i].isClosed());
+                frames[i].setClosed(frameDataStorages[i].isClosed());
+                frames[i].setIcon(frameDataStorages[i].isIcon());
             }
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             return null;
         }
+
 
         return frames;
     }

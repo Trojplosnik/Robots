@@ -4,18 +4,20 @@ import java.awt.Rectangle;
 import java.io.Serializable;
 
 public class FrameDataStorage implements Serializable {
-    String title;
+    private final String title;
 
-    boolean Closed;
+    private final boolean Closed;
 
-    boolean Icon;
-    Rectangle bounds;
+    private final boolean icon;
+    private final Rectangle bounds;
 
-    public FrameDataStorage(String title, boolean Closed, boolean Icon,  Rectangle  bounds) {
+
+    public FrameDataStorage(String title, boolean Closed, boolean Icon, Rectangle  bounds) {
         this.title = title;
         this.Closed = Closed;
         this.bounds = bounds;
-        this.Icon = Icon;
+        this.icon = Icon;
+
     }
 
     public String getTitle() {
@@ -27,7 +29,7 @@ public class FrameDataStorage implements Serializable {
     }
 
     public boolean isIcon() {
-        return Icon;
+        return icon;
     }
 
     public Rectangle getBounds() {

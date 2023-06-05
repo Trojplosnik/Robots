@@ -7,20 +7,19 @@ import java.awt.TextArea;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
-import log.LogChangeListener;
-import log.LogEntry;
-import log.LogWindowSource;
+import model.log.LogChangeListener;
+import model.log.LogEntry;
+import model.log.LogWindowSource;
 
-import static language.LanguageTranslator.TRANSLATOR;
 
 public class LogWindow extends JInternalFrame implements LogChangeListener
 {
     private final LogWindowSource m_logSource;
     private final TextArea m_logContent;
 
-    public LogWindow(LogWindowSource logSource) 
+    public LogWindow(LogWindowSource logSource, String title)
     {
-        super(TRANSLATOR.translate("work_protocol"), true, true, true, true);
+        super(title, true, true, true, true);
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");

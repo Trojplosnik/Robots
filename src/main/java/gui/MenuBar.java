@@ -1,6 +1,6 @@
 package gui;
 
-import log.Logger;
+import model.log.Logger;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -9,7 +9,6 @@ import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import static language.LanguageTranslator.TRANSLATOR;
@@ -45,6 +44,13 @@ public class MenuBar extends JMenuBar {
         logWindow.addActionListener((event) -> mainApp.addWindow(mainApp.createLogWindow()));
         mainApp.invalidate();
         additionalMenu.add(logWindow);
+
+        JMenuItem posWindow = new JMenuItem(TRANSLATOR.translate("coordinates"), KeyEvent.VK_P);
+        posWindow.addActionListener((event) -> mainApp.addWindow(mainApp.createRobotsPositionWindow()));
+        mainApp.invalidate();
+        additionalMenu.add(posWindow);
+
+
         return additionalMenu;
     }
 
