@@ -20,6 +20,7 @@ public class MenuBar extends JMenuBar {
     public MenuBar(MainApplicationFrame mainApplicationFrame) {
         mainApp = mainApplicationFrame;
         add(createExitBottom());
+        add(createChangeLanguageBottom());
         add(createLookAndFeelMenu());
         add(createTestMenu());
         add(createAdditionalMenu());
@@ -52,6 +53,23 @@ public class MenuBar extends JMenuBar {
 
 
         return additionalMenu;
+    }
+
+    private JMenu createChangeLanguageBottom() {
+        JMenu languageMenu = new JMenu(TRANSLATOR.translate("language"));
+        languageMenu.setMnemonic(KeyEvent.VK_C);
+        languageMenu.getAccessibleContext().setAccessibleDescription(TRANSLATOR.translate("language_description"));
+
+        JMenuItem english = new JMenuItem(TRANSLATOR.translate("english"), KeyEvent.VK_N);
+        english.addActionListener((event) -> TRANSLATOR.changeLanguage("en"));
+        SwingUtilities.updateComponentTreeUI(mainApp);
+        languageMenu.add(english);
+
+        JMenuItem russian = new JMenuItem(TRANSLATOR.translate("russian"), KeyEvent.VK_N);
+        russian.addActionListener((event) -> TRANSLATOR.changeLanguage("ru"));
+        SwingUtilities.updateComponentTreeUI(mainApp);
+        languageMenu.add(russian);
+        return languageMenu;
     }
 
 

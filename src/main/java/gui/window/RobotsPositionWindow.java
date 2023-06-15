@@ -1,31 +1,39 @@
-package gui;
+package gui.window;
 
+import model.state.Calculator;
 import model.state.GameModel;
 
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+
 import java.awt.BorderLayout;
 import java.awt.TextArea;
+
 import java.util.Observable;
 import java.util.Observer;
 
 public class RobotsPositionWindow extends JInternalFrame implements Observer {
-    private final TextArea coordinates;
-    private int m_X = 0;
-    private int m_Y = 0;
+    private final JLabel labelX;
+    private final JLabel labelY;
     private final GameModel gameModel;
 
     public RobotsPositionWindow(GameModel model, String title) {
-        super(title, true, true, true, true);
+        super(title, false, true, true, true);
 
-        this.coordinates = new TextArea("");
-        coordinates.setSize(200, 500);
+        labelX = new JLabel("X coordinate: " + Calculator.round(model.robotX()));
+        labelY = new JLabel("Y coordinate: " + Calculator.round(model.robotY()));
 
-        this.gameModel = model;
+        gameModel = model;
         gameModel.addObserver(this);
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(coordinates, BorderLayout.CENTER);
+
+        panel.add(labelX, BorderLayout.NORTH);
+        panel.add(labelY, BorderLayout.CENTER);
+
+        setSize(130, 70);
+
         getContentPane().add(panel);
         pack();
     }
@@ -41,19 +49,14 @@ public class RobotsPositionWindow extends JInternalFrame implements Observer {
     public void update(Observable o, Object key) {
         if (areEqual(gameModel, o)) {
             if (areEqual(GameModel.KEY_MODEL_UPDATE, key))
-                onModelUpdateEvent();
+                updateCoordinates(gameModel);
         }
     }
 
-    private void onModelUpdateEvent() {
-        if (m_X != round(gameModel.robotX()) && m_Y != round(gameModel.robotY())) {
-            m_X = round(gameModel.robotX());
-            m_Y = round(gameModel.robotY());
-            coordinates.append("X coordinate: " + m_X + ", Y coordinate: " + m_Y + "\n");
-        }
+    private void updateCoordinates(GameModel model) {
+        labelX.setText("X coordinate: " + Calculator.round(model.robotX()));
+        labelY.setText("Y coordinate: " + Calculator.round(model.robotY()));
     }
 
-    public static int round(double value) {
-        return (int) (value + 0.5);
-    }
+
 }

@@ -5,6 +5,9 @@ import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import gui.window.GameWindow;
+import gui.window.LogWindow;
+import gui.window.RobotsPositionWindow;
 import model.log.Logger;
 import model.state.GameModel;
 
@@ -16,11 +19,6 @@ import javax.swing.JInternalFrame;
 import static language.LanguageTranslator.TRANSLATOR;
 import static configuration.SaveLoad.SAVELOAD;
 
-/**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается.
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- */
 public class MainApplicationFrame extends JFrame {
     private static final JDesktopPane desktopPane = new JDesktopPane();
 
@@ -84,8 +82,8 @@ public class MainApplicationFrame extends JFrame {
 
     protected RobotsPositionWindow createRobotsPositionWindow() {
         RobotsPositionWindow posWindow = new RobotsPositionWindow(robotModel, TRANSLATOR.translate("coordinates"));
+        posWindow.setSize(130, 70);
         posWindow.setLocation(350, 10);
-        posWindow.setSize(300, 800);
         return posWindow;
     }
 
@@ -109,39 +107,9 @@ public class MainApplicationFrame extends JFrame {
             }
         }
         else {
-            addWindow(createLogWindow());
             addWindow(createGameWindow());
+            addWindow(createLogWindow());
             addWindow(createRobotsPositionWindow());
         }
     }
-
-
-    //    protected JMenuBar createMenuBar() {
-//        JMenuBar menuBar = new JMenuBar();
-// 
-//        //Set up the lone menu.
-//        JMenu menu = new JMenu("Document");
-//        menu.setMnemonic(KeyEvent.VK_D);
-//        menuBar.add(menu);
-// 
-//        //Set up the first menu item.
-//        JMenuItem menuItem = new JMenuItem("New");
-//        menuItem.setMnemonic(KeyEvent.VK_N);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_N, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("new");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        //Set up the second menu item.
-//        menuItem = new JMenuItem("Quit");
-//        menuItem.setMnemonic(KeyEvent.VK_Q);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_Q, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("quit");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        return menuBar;
-//    }
 }

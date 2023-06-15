@@ -2,6 +2,7 @@ package gui;
 
 
 
+import model.state.Calculator;
 import model.state.GameModel;
 
 import javax.swing.JPanel;
@@ -14,17 +15,21 @@ public class GameVisualizer extends JPanel {
     private final GameModel robotModel;
 
 
-    public GameVisualizer(GameModel robotModel) {
-        this.robotModel = robotModel;
+    public GameVisualizer(GameModel Model) {
+        robotModel = Model;
     }
 
     @Override
     public void paint(Graphics g)
     {
         super.paint(g);
-        Graphics2D g2d = (Graphics2D)g;
-        drawRobot(g2d, robotModel.robotDirection());
-        drawTarget(g2d, robotModel.targetX(), robotModel.targetY());
+        Graphics2D g2d = (Graphics2D) g.create();
+        try {
+            drawRobot(g2d, robotModel);
+            drawTarget(g2d, robotModel);
+        } finally {
+            g2d.dispose();
+        }
     }
 
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
@@ -37,11 +42,11 @@ public class GameVisualizer extends JPanel {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
-    private void drawRobot(Graphics2D g, double direction)
+    private void drawRobot(Graphics2D g, GameModel model)
     {
-        int robotCenterX = round(robotModel.robotX());
-        int robotCenterY = round(robotModel.robotY());
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
+        int robotCenterX = Calculator.round(model.robotX());
+        int robotCenterY = Calculator.round(model.robotY());
+        AffineTransform t = AffineTransform.getRotateInstance(model.robotDirection(), robotCenterX, robotCenterY);
         g.setTransform(t);
         g.setColor(Color.MAGENTA);
         fillOval(g, robotCenterX, robotCenterY, 30, 10);
@@ -53,18 +58,16 @@ public class GameVisualizer extends JPanel {
         drawOval(g, robotCenterX  + 10, robotCenterY, 5, 5);
     }
 
-    private void drawTarget(Graphics2D g, int x, int y)
+    private void drawTarget(Graphics2D g, GameModel model)
     {
         AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
         g.setColor(Color.GREEN);
-        fillOval(g, x, y, 5, 5);
+        fillOval(g, model.targetX(), model.targetY(), 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, x, y, 5, 5);
+        drawOval(g, model.targetX(), model.targetY(), 5, 5);
     }
 
-    public static int round(double value) {
-        return (int) (value + 0.5);
-    }
+
 
 }

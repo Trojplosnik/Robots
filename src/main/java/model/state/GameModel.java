@@ -1,12 +1,11 @@
 package model.state;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class GameModel extends Observable {
-    public static final String KEY_REDRAW = "redraw";
     public static final String KEY_MODEL_UPDATE = "update";
 
     private final Timer m_timer = initTimer();
@@ -20,24 +19,15 @@ public class GameModel extends Observable {
     private final Target target;
 
     public GameModel() {
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                setChanged();
-                notifyObservers(KEY_REDRAW);
-                clearChanged();
-            }
-        }, 0, 50);
-        m_timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                setChanged();
-                notifyObservers(KEY_MODEL_UPDATE);
-                clearChanged();
-            }
-        }, 0, 10);
         robot = new Robot(100, 100);
         target = new Target(100, 100);
+
+        m_timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                onModelUpdateEvent();
+            }
+        }, 0, 10);
     }
 
     public void setTargetPosition(Point p) {
@@ -66,43 +56,44 @@ public class GameModel extends Observable {
         return (int) target.getY();
     }
 
-    private static double applyLimits(double value, double min, double max) {
-        if (value < min)
-            return min;
-        if (value > max)
-            return max;
-        return value;
+
+    protected void onModelUpdateEvent() {
+        double distance = Calculator.distance(target.getX(), target.getY(), robot.getX(), robot.getY());
+        if (distance < 0.5) {
+            setChanged();
+            notifyObservers(KEY_MODEL_UPDATE);
+            clearChanged();
+            return;
+        }
+        double angleToTarget = Calculator.angleTo(robot.getX(), robot.getY(), target.getX(), target.getY());
+
+        double angularVelocity = Calculator.calculateAngularVelocity(angleToTarget,
+                robot.getDirection(), Robot.maxAngularVelocity);
+
+        moveRobot(Robot.maxVelocity, angularVelocity, 10);
+
+        setChanged();
+        notifyObservers(KEY_MODEL_UPDATE);
+        clearChanged();
     }
 
     public void moveRobot(double velocity, double angularVelocity, double duration) {
-        velocity = applyLimits(velocity, 0, Robot.maxVelocity);
-        angularVelocity = applyLimits(angularVelocity, -Robot.maxAngularVelocity, Robot.maxAngularVelocity);
-        double newX = robot.getX() + velocity / angularVelocity *
-                (Math.sin(robot.getDirection() + angularVelocity * duration) -
-                        Math.sin(robot.getDirection()));
-        if (!Double.isFinite(newX)) {
-            newX = robot.getX() + velocity * duration * Math.cos(robot.getDirection());
-        }
-        double newY = robot.getY() - velocity / angularVelocity *
-                (Math.cos(robot.getDirection() + angularVelocity * duration) -
-                        Math.cos(robot.getDirection()));
-        if (!Double.isFinite(newY)) {
-            newY = robot.getY() + velocity * duration * Math.sin(robot.getDirection());
-        }
+        velocity = Calculator.applyLimits(velocity, 0, Robot.maxVelocity);
+        angularVelocity = Calculator.applyLimits(angularVelocity, -Robot.maxAngularVelocity, Robot.maxAngularVelocity);
+
+
+        double newDirection = Calculator.calculateNewDirection(angularVelocity, duration, robot.getDirection());
+
+        double newX = Calculator.calculateNewX(velocity, angularVelocity, robot.getX(), duration,
+                newDirection, robot.getDirection());
+        double newY = Calculator.calculateNewY(velocity, angularVelocity, robot.getY(), duration,
+                newDirection, robot.getDirection());
+
         robot.setX(newX);
         robot.setY(newY);
-        double newDirection = asNormalizedRadians(robot.getDirection() + angularVelocity * duration);
+
         robot.setDirection(newDirection);
     }
 
-    public static double asNormalizedRadians(double angle) {
-        while (angle < 0) {
-            angle += 2 * Math.PI;
-        }
-        while (angle >= 2 * Math.PI) {
-            angle -= 2 * Math.PI;
-        }
-        return angle;
-    }
 }
 

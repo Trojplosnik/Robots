@@ -1,9 +1,9 @@
 package configuration;
 
 
-import gui.GameWindow;
-import gui.LogWindow;
-import gui.RobotsPositionWindow;
+import gui.window.GameWindow;
+import gui.window.LogWindow;
+import gui.window.RobotsPositionWindow;
 import model.log.Logger;
 import model.state.GameModel;
 
