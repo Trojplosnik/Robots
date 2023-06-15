@@ -59,10 +59,10 @@ public class GameModel extends Observable {
 
     protected void onModelUpdateEvent() {
         double distance = Calculator.distance(target.getX(), target.getY(), robot.getX(), robot.getY());
+        setChanged();
+        notifyObservers(KEY_MODEL_UPDATE);
+        clearChanged();
         if (distance < 0.5) {
-            setChanged();
-            notifyObservers(KEY_MODEL_UPDATE);
-            clearChanged();
             return;
         }
         double angleToTarget = Calculator.angleTo(robot.getX(), robot.getY(), target.getX(), target.getY());
@@ -71,10 +71,6 @@ public class GameModel extends Observable {
                 robot.getDirection(), Robot.maxAngularVelocity);
 
         moveRobot(Robot.maxVelocity, angularVelocity, 10);
-
-        setChanged();
-        notifyObservers(KEY_MODEL_UPDATE);
-        clearChanged();
     }
 
     public void moveRobot(double velocity, double angularVelocity, double duration) {

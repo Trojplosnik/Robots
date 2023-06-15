@@ -17,7 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JInternalFrame;
 
 import static language.LanguageTranslator.TRANSLATOR;
-import static configuration.SaveLoad.SAVELOAD;
+import static configuration.FrameSerializer.SAVELOAD;
 
 public class MainApplicationFrame extends JFrame {
     private static final JDesktopPane desktopPane = new JDesktopPane();

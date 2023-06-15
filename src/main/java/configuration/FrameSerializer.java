@@ -16,13 +16,13 @@ import java.io.ObjectInputStream;
 import java.io.FileInputStream;
 import static language.LanguageTranslator.TRANSLATOR;
 
-public class SaveLoad {
+public class FrameSerializer {
     private final File configFile = new File(System.getProperty("user.home")
             + File.separator + "RobotsConfig" + File.separator +  "config.dat");
 
-    public static final SaveLoad SAVELOAD = new SaveLoad();
+    public static final FrameSerializer SAVELOAD = new FrameSerializer();
 
-    public SaveLoad() {
+    public FrameSerializer() {
         createConfigFile();
     }
 
@@ -33,6 +33,7 @@ public class SaveLoad {
                 {
                     if (configFile.getParentFile().mkdir())
                         configFile.createNewFile();
+
                 }
         }
         catch(IOException ex){
@@ -47,19 +48,17 @@ public class SaveLoad {
         createConfigFile();
 
 
-
-        FrameDataStorage[] frameDataStorages = new FrameDataStorage[frames.length];
+        FrameState[] frameStates = new FrameState[frames.length];
 
 
         for (int i = 0; i < frames.length; i++) {
-            frameDataStorages[i] = new FrameDataStorage(frames[i].getTitle(),
-                    frames[i].isClosed(), frames[i].isIcon(),
-                    frames[i].getBounds());
+            frameStates[i] = new FrameState(frames[i]);
         }
 
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(configFile))) {
-            oos.writeObject(frameDataStorages);
+            oos.writeObject(frameStates);
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -69,26 +68,24 @@ public class SaveLoad {
         JInternalFrame[] frames;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
 
-            FrameDataStorage[] frameDataStorages = (FrameDataStorage[]) ois.readObject();
-            frames = new JInternalFrame[frameDataStorages.length];
-            for (int i = 0; i < frameDataStorages.length; i++) {
-                if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("game_field"))) {
-                    frames[i] = new GameWindow(robotModel, frameDataStorages[i].getTitle());
-                } else if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("work_protocol"))) {
-                    frames[i] = new LogWindow(Logger.getDefaultLogSource(), frameDataStorages[i].getTitle());
+            FrameState[] frameStates = (FrameState[]) ois.readObject();
+            frames = new JInternalFrame[frameStates.length];
+            for (int i = 0; i < frameStates.length; i++) {
+                if (frameStates[i].getTitle().equals(TRANSLATOR.translate("game_field"))) {
+                    frames[i] = new GameWindow(robotModel, frameStates[i].getTitle());
+                } else if (frameStates[i].getTitle().equals(TRANSLATOR.translate("work_protocol"))) {
+                    frames[i] = new LogWindow(Logger.getDefaultLogSource(), frameStates[i].getTitle());
                     Logger.debug("The protocol works");
-                } else if (frameDataStorages[i].getTitle().equals(TRANSLATOR.translate("coordinates"))) {
-                    frames[i] = new RobotsPositionWindow(robotModel, frameDataStorages[i].getTitle());
+                } else if (frameStates[i].getTitle().equals(TRANSLATOR.translate("coordinates"))) {
+                    frames[i] = new RobotsPositionWindow(robotModel, frameStates[i].getTitle());
                 } else {
-                    throw new IllegalStateException("Unexpected value: " + frameDataStorages[i].getTitle());
+                    throw new IllegalStateException("Unexpected value: " + frameStates[i].getTitle());
                 }
-                frames[i].setTitle(frameDataStorages[i].getTitle());
-                frames[i].setBounds(frameDataStorages[i].getBounds());
-                frames[i].setClosed(frameDataStorages[i].isClosed());
-                frames[i].setIcon(frameDataStorages[i].isIcon());
+                frameStates[i].restoreFrame(frames[i]);
             }
 
         } catch (Exception ex) {
+//            ex.printStackTrace();
             return null;
         }
 
