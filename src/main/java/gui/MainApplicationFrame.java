@@ -49,16 +49,17 @@ public class MainApplicationFrame extends JFrame {
         });
     }
 
-    static protected void confirmExitEvent() {
+    protected void confirmExitEvent() {
         String[] options = {TRANSLATOR.translate("yes"), TRANSLATOR.translate("no")};
-        int exit = JOptionPane.showOptionDialog(null, TRANSLATOR.translate("exit_confirm"),
+        int exit = JOptionPane.showOptionDialog(null,
+                TRANSLATOR.translate("exit_confirm"),
                 TRANSLATOR.translate("exit"),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
                 null, options, options[1]);
-        if (exit == 0){
+        if (exit == JOptionPane.YES_OPTION){
             SAVELOAD.save(desktopPane.getAllFrames());
-            System.exit(0);
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
         }
     }
 

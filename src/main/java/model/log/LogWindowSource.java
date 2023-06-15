@@ -58,7 +58,10 @@ public class LogWindowSource {
         if (m_messages.size() >= m_iQueueLength) {
             m_messages.remove(0);
         }
+        synchronized (syncKey){
         m_messages.add(entry);
+        }
+
         LogChangeListener [] activeListeners = m_activeListeners;
         if (activeListeners == null)
         {
