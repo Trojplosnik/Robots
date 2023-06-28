@@ -2,155 +2,184 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-import javax.swing.JDesktopPane;
+import configuration.FrameState;
+import gui.window.GameWindow;
+import gui.window.LogWindow;
+import gui.window.RobotsPositionWindow;
+import model.log.Logger;
+import model.state.GameModel;
+import org.json.JSONObject;
+
 import javax.swing.JFrame;
+import javax.swing.JDesktopPane;
+import javax.swing.JOptionPane;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
-import log.Logger;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается. 
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- *
- */
-public class MainApplicationFrame extends JFrame
-{
-    private final JDesktopPane desktopPane = new JDesktopPane();
-    
+import static language.LanguageTranslator.TRANSLATOR;
+import static configuration.FrameSerializer.SERIALIZER;
+
+public class MainApplicationFrame extends JFrame {
+    private static final JDesktopPane desktopPane = new JDesktopPane();
+
+
+    private static final GameModel robotModel = new GameModel();
+
+    private LogWindow logWindow;
+    private GameWindow gameWindow;
+    private RobotsPositionWindow positionWindow;
+
+
+    public void setLogWindow(LogWindow logWindow) {
+        this.logWindow = logWindow;
+        addWindow(this.logWindow);
+    }
+
+    public void setGameWindow(GameWindow gameWindow) {
+        this.gameWindow = gameWindow;
+        addWindow(this.gameWindow);
+    }
+
+    public void setPositionWindow(RobotsPositionWindow positionWindow) {
+        this.positionWindow = positionWindow;
+        addWindow(this.positionWindow);
+    }
+
     public MainApplicationFrame() {
         //Make the big window be indented 50 pixels from each edge
         //of the screen.
-        int inset = 50;        
+        int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
-            screenSize.width  - inset*2,
-            screenSize.height - inset*2);
+                screenSize.width - inset * 2,
+                screenSize.height - inset * 2);
 
         setContentPane(desktopPane);
-        
-        
-        LogWindow logWindow = createLogWindow();
-        addWindow(logWindow);
+        logWindow = createLogWindow();
+        gameWindow = createGameWindow();
+        positionWindow = createRobotsPositionWindow();
 
-        GameWindow gameWindow = new GameWindow();
-        gameWindow.setSize(400,  400);
-        addWindow(gameWindow);
+        loadWindows();
 
-        setJMenuBar(generateMenuBar());
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setJMenuBar(new MenuBar(this));
+
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                confirmExitEvent();
+            }
+        });
     }
-    
-    protected LogWindow createLogWindow()
-    {
-        LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        logWindow.setLocation(10,10);
-        logWindow.setSize(300, 800);
-        setMinimumSize(logWindow.getSize());
-        logWindow.pack();
-        Logger.debug("Протокол работает");
-        return logWindow;
+
+    protected void confirmExitEvent() {
+        String[] options = {TRANSLATOR.translate("yes"), TRANSLATOR.translate("no")};
+        int exit = JOptionPane.showOptionDialog(null,
+                TRANSLATOR.translate("exit_confirm"),
+                TRANSLATOR.translate("exit"),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null, options, options[1]);
+        if (exit == JOptionPane.YES_OPTION){
+            saveWindows();
+            setDefaultCloseOperation(EXIT_ON_CLOSE);
+        }
     }
-    
-    protected void addWindow(JInternalFrame frame)
-    {
+
+    protected GameWindow createGameWindow() {
+        GameWindow window = new GameWindow(robotModel);
+        window.setSize(600, 600);
+        int x = (this.getWidth() - window.getWidth()) / 2;
+        int y = (this.getHeight() - window.getHeight()) / 2;
+        window.setLocation(x, y);
+        return window;
+    }
+
+    protected LogWindow createLogWindow() {
+        LogWindow window = new LogWindow(Logger.getDefaultLogSource());
+        window.setLocation(10, 10);
+        window.setSize(300, 800);
+        Logger.debug("The protocol works");
+        setMinimumSize(window.getSize());
+        return window;
+    }
+
+    protected RobotsPositionWindow createRobotsPositionWindow() {
+        RobotsPositionWindow window = new RobotsPositionWindow(robotModel);
+        window.setSize(250, 70);
+        window.setLocation(350, 10);
+        return window;
+    }
+
+    protected void addWindow(JInternalFrame frame) {
+        for (JInternalFrame currentFrame : desktopPane.getAllFrames()) {
+            if (currentFrame.getTitle().equals(frame.getTitle()))
+                return;
+        }
         desktopPane.add(frame);
         frame.setVisible(true);
     }
-    
-//    protected JMenuBar createMenuBar() {
-//        JMenuBar menuBar = new JMenuBar();
-// 
-//        //Set up the lone menu.
-//        JMenu menu = new JMenu("Document");
-//        menu.setMnemonic(KeyEvent.VK_D);
-//        menuBar.add(menu);
-// 
-//        //Set up the first menu item.
-//        JMenuItem menuItem = new JMenuItem("New");
-//        menuItem.setMnemonic(KeyEvent.VK_N);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_N, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("new");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        //Set up the second menu item.
-//        menuItem = new JMenuItem("Quit");
-//        menuItem.setMnemonic(KeyEvent.VK_Q);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_Q, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("quit");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-// 
-//        return menuBar;
-//    }
-    
-    private JMenuBar generateMenuBar()
-    {
-        JMenuBar menuBar = new JMenuBar();
-        
-        JMenu lookAndFeelMenu = new JMenu("Режим отображения");
-        lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
-        lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
-        
-        {
-            JMenuItem systemLookAndFeel = new JMenuItem("Системная схема", KeyEvent.VK_S);
-            systemLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(systemLookAndFeel);
-        }
 
-        {
-            JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
-            crossplatformLookAndFeel.addActionListener((event) -> {
-                setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                this.invalidate();
-            });
-            lookAndFeelMenu.add(crossplatformLookAndFeel);
-        }
-
-        JMenu testMenu = new JMenu("Тесты");
-        testMenu.setMnemonic(KeyEvent.VK_T);
-        testMenu.getAccessibleContext().setAccessibleDescription(
-                "Тестовые команды");
-        
-        {
-            JMenuItem addLogMessageItem = new JMenuItem("Сообщение в лог", KeyEvent.VK_S);
-            addLogMessageItem.addActionListener((event) -> {
-                Logger.debug("Новая строка");
-            });
-            testMenu.add(addLogMessageItem);
-        }
-
-        menuBar.add(lookAndFeelMenu);
-        menuBar.add(testMenu);
-        return menuBar;
+    private void saveWindows(){
+        JSONObject json = new JSONObject();
+        json.put("Language", TRANSLATOR.getCurrentLanguage());
+        json.put("baseName", TRANSLATOR.getCurrentBaseName());
+        json.put("gameWindow",new JSONObject(new FrameState(gameWindow)));
+        json.put("logWindow", new JSONObject(new FrameState(logWindow)));
+        json.put("positionWindow",new JSONObject(new FrameState(positionWindow)));
+        SERIALIZER.save(json);
     }
-    
-    private void setLookAndFeel(String className)
-    {
-        try
-        {
-            UIManager.setLookAndFeel(className);
-            SwingUtilities.updateComponentTreeUI(this);
+
+    protected void loadWindows() {
+        JSONObject json = SERIALIZER.load();
+        ObjectMapper objectMapper = new ObjectMapper();
+        if(json != null) {
+            if (json.has("baseName") && json.has("Language")) {
+                TRANSLATOR.changeLanguage(json.getString("baseName"), json.getString("Language"));
+            }
+            if (json.has("gameWindow")) {
+                try {
+                    FrameState frameState =
+                            objectMapper.readValue(json.get("gameWindow").toString(), FrameState.class);
+                    frameState.restoreFrame(gameWindow);
+                }
+                catch (Exception e){
+                    // e.printStackTrace();
+                    // ignore
+                }
+            }
+            if (json.has("logWindow")) {
+                try {
+                    FrameState frameState =
+                            objectMapper.readValue(json.get("logWindow").toString(), FrameState.class);
+                    frameState.restoreFrame(logWindow);
+                }
+                catch (Exception e){
+                    // e.printStackTrace();
+                    // ignore
+                }
+            }
+            if (json.has("positionWindow")) {
+                try {
+                    FrameState frameState =
+                            objectMapper.readValue(json.get("positionWindow").toString(), FrameState.class);
+                    frameState.restoreFrame(positionWindow);
+                }
+                catch (Exception e){
+                    // e.printStackTrace();
+                    // ignore
+                }
+            }
         }
-        catch (ClassNotFoundException | InstantiationException
-            | IllegalAccessException | UnsupportedLookAndFeelException e)
-        {
-            // just ignore
-        }
+        if (!gameWindow.isClosed())
+            addWindow(gameWindow);
+        if (!logWindow.isClosed())
+            addWindow(logWindow);
+        if (!positionWindow.isClosed())
+            addWindow(positionWindow);
     }
 }
