@@ -19,14 +19,17 @@ public class MenuBar extends JMenuBar {
     private final MainApplicationFrame mainApp;
     public MenuBar(MainApplicationFrame mainApplicationFrame) {
         mainApp = mainApplicationFrame;
+        updateMenuBar();
+    }
+
+    private void updateMenuBar() {
+        removeAll();
         add(createExitBottom());
         add(createChangeLanguageBottom());
         add(createLookAndFeelMenu());
         add(createTestMenu());
         add(createAdditionalMenu());
     }
-
-
 
     private JMenu createAdditionalMenu() {
         JMenu additionalMenu = new JMenu(TRANSLATOR.translate("additional"));
@@ -36,19 +39,23 @@ public class MenuBar extends JMenuBar {
 
         JMenuItem gameWindow = new JMenuItem(TRANSLATOR.translate("open_game_window"), KeyEvent.VK_G);
         gameWindow.addActionListener((event) -> {
-            mainApp.addWindow(mainApp.createGameWindow());
+            mainApp.setGameWindow(mainApp.createGameWindow());
+            mainApp.invalidate();
         });
-        mainApp.invalidate();
         additionalMenu.add(gameWindow);
 
         JMenuItem logWindow = new JMenuItem(TRANSLATOR.translate("open_log_window"), KeyEvent.VK_L);
-        logWindow.addActionListener((event) -> mainApp.addWindow(mainApp.createLogWindow()));
-        mainApp.invalidate();
+        logWindow.addActionListener((event) -> {
+            mainApp.setLogWindow(mainApp.createLogWindow());
+            mainApp.invalidate();
+        });
         additionalMenu.add(logWindow);
 
         JMenuItem posWindow = new JMenuItem(TRANSLATOR.translate("coordinates"), KeyEvent.VK_P);
-        posWindow.addActionListener((event) -> mainApp.addWindow(mainApp.createRobotsPositionWindow()));
-        mainApp.invalidate();
+        posWindow.addActionListener((event) -> {
+            mainApp.setPositionWindow(mainApp.createRobotsPositionWindow());
+            mainApp.invalidate();
+        });
         additionalMenu.add(posWindow);
 
 
@@ -61,13 +68,22 @@ public class MenuBar extends JMenuBar {
         languageMenu.getAccessibleContext().setAccessibleDescription(TRANSLATOR.translate("language_description"));
 
         JMenuItem english = new JMenuItem(TRANSLATOR.translate("english"), KeyEvent.VK_N);
-        english.addActionListener((event) -> TRANSLATOR.changeLanguage("en"));
-        SwingUtilities.updateComponentTreeUI(mainApp);
+        english.addActionListener((event) ->
+        {
+            TRANSLATOR.changeLanguage("locale","en");
+            updateMenuBar();
+            mainApp.invalidate();
+        });
         languageMenu.add(english);
 
+
         JMenuItem russian = new JMenuItem(TRANSLATOR.translate("russian"), KeyEvent.VK_N);
-        russian.addActionListener((event) -> TRANSLATOR.changeLanguage("ru"));
-        SwingUtilities.updateComponentTreeUI(mainApp);
+        russian.addActionListener((event) -> {
+            TRANSLATOR.changeLanguage("locale","ru");
+            updateMenuBar();
+            updateUI();
+            mainApp.invalidate();
+        });
         languageMenu.add(russian);
         return languageMenu;
     }

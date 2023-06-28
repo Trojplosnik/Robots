@@ -11,29 +11,57 @@ public class FrameState implements Serializable {
     private final boolean closed;
 
     private final boolean icon;
-    private final Rectangle bounds;
+
+    private final int x;
+
+    private final int y;
+
+    private final int width;
+
+    private final int height;
 
 
-    public FrameState(String title, boolean closed, boolean icon, Rectangle  bounds) {
+    public FrameState(String title, boolean closed, boolean icon,
+                      int x, int y, int width, int height) {
         this.title = title;
         this.closed = closed;
-        this.bounds = bounds;
+        this.x = x;
+        this.y= y;
+        this.width = width;
+        this.height = height;
         this.icon = icon;
     }
 
     public FrameState(JInternalFrame frame) {
         title = frame.getTitle();
         closed = frame.isClosed();
-        bounds = frame.getBounds();
+        x = frame.getX();
+        y= frame.getY();
+        width = frame.getWidth();
+        height = frame.getHeight();
         icon = frame.isIcon();
-
     }
 
-    public void restoreFrame(JInternalFrame frame) throws PropertyVetoException {
+    public FrameState() {
+        title = null;
+        closed = true;
+        x = 0;
+        y= 0;
+        width = 0;
+        height = 0;
+        icon = true;
+    }
+
+    public void restoreFrame(JInternalFrame frame) {
         frame.setTitle(title);
-        frame.setBounds(bounds);
-        frame.setClosed(closed);
-        frame.setIcon(icon);
+        frame.setBounds(x, y, width, height);
+        try {
+            frame.setClosed(closed);
+            frame.setIcon(icon);
+        } catch (PropertyVetoException e) {
+            // just ignore
+        }
+
     }
 
     public String getTitle() {
@@ -48,11 +76,21 @@ public class FrameState implements Serializable {
         return icon;
     }
 
-    public Rectangle getBounds() {
-        return bounds;
+    public int getX() {
+        return x;
     }
 
+    public int getY() {
+        return y;
+    }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 
 
 }

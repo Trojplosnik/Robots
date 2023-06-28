@@ -1,95 +1,69 @@
 package configuration;
 
 
-import gui.window.GameWindow;
-import gui.window.LogWindow;
-import gui.window.RobotsPositionWindow;
-import model.log.Logger;
-import model.state.GameModel;
+import org.json.JSONObject;
 
-import javax.swing.JInternalFrame;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.FileInputStream;
-import static language.LanguageTranslator.TRANSLATOR;
+import java.nio.charset.StandardCharsets;
+
 
 public class FrameSerializer {
     private final File configFile = new File(System.getProperty("user.home")
-            + File.separator + "RobotsConfig" + File.separator +  "config.dat");
+            + File.separator + "RobotsConfig" + File.separator + "config.json");
 
-    public static final FrameSerializer SAVELOAD = new FrameSerializer();
+    public static final FrameSerializer SERIALIZER = new FrameSerializer();
 
-    public FrameSerializer() {
-        createConfigFile();
+    private FrameSerializer() {
     }
 
-    private void createConfigFile(){
+    private void createConfigFile() {
         try {
-            if(!configFile.exists())
-                if(!configFile.getParentFile().exists())
-                {
+            if (!configFile.exists())
+                if (!configFile.getParentFile().exists()) {
                     if (configFile.getParentFile().mkdir())
                         configFile.createNewFile();
 
                 }
-        }
-        catch(IOException ex){
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
 
 
-
-    public void save(JInternalFrame[] frames) {
-
+    public void save(JSONObject json) {
         createConfigFile();
 
-
-        FrameState[] frameStates = new FrameState[frames.length];
-
-
-        for (int i = 0; i < frames.length; i++) {
-            frameStates[i] = new FrameState(frames[i]);
-        }
-
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(configFile))) {
-            oos.writeObject(frameStates);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        try (FileWriter fileWriter = new FileWriter(configFile.getAbsolutePath(), StandardCharsets.UTF_8)) {
+            fileWriter.write(json.toString());
+        } catch (IOException e) {
+            // e.printStackTrace();
+            // ignore
         }
     }
 
-    public JInternalFrame[] load(GameModel robotModel) {
-        JInternalFrame[] frames;
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
-
-            FrameState[] frameStates = (FrameState[]) ois.readObject();
-            frames = new JInternalFrame[frameStates.length];
-            for (int i = 0; i < frameStates.length; i++) {
-                if (frameStates[i].getTitle().equals(TRANSLATOR.translate("game_field"))) {
-                    frames[i] = new GameWindow(robotModel, frameStates[i].getTitle());
-                } else if (frameStates[i].getTitle().equals(TRANSLATOR.translate("work_protocol"))) {
-                    frames[i] = new LogWindow(Logger.getDefaultLogSource(), frameStates[i].getTitle());
-                    Logger.debug("The protocol works");
-                } else if (frameStates[i].getTitle().equals(TRANSLATOR.translate("coordinates"))) {
-                    frames[i] = new RobotsPositionWindow(robotModel, frameStates[i].getTitle());
-                } else {
-                    throw new IllegalStateException("Unexpected value: " + frameStates[i].getTitle());
+    public JSONObject load() {
+        if (configFile.exists()) {
+            try (FileReader fileReader = new FileReader(configFile, StandardCharsets.UTF_8)) {
+                try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(line);
+                    }
+                    return new JSONObject(stringBuilder.toString());
+                } catch (Exception ex) {
+                    // ex.printStackTrace();
+                    // ignore
                 }
-                frameStates[i].restoreFrame(frames[i]);
+            } catch (IOException e) {
+                // e.printStackTrace();
+                // ignore
             }
-
-        } catch (Exception ex) {
-//            ex.printStackTrace();
-            return null;
         }
-
-
-        return frames;
+        return null;
     }
 }

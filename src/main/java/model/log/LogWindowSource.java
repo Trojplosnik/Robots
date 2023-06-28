@@ -65,7 +65,7 @@ public class LogWindowSource {
         LogChangeListener [] activeListeners = m_activeListeners;
         if (activeListeners == null)
         {
-            synchronized (m_listeners)
+            synchronized (syncKey)
             {
                 if (m_activeListeners == null)
                 {

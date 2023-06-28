@@ -1,5 +1,6 @@
 package gui.window;
 
+import language.LanguageTranslator;
 import model.state.Calculator;
 import model.state.GameModel;
 
@@ -8,31 +9,33 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import java.awt.BorderLayout;
-import java.awt.TextArea;
 
 import java.util.Observable;
 import java.util.Observer;
+
+import static language.LanguageTranslator.TRANSLATOR;
 
 public class RobotsPositionWindow extends JInternalFrame implements Observer {
     private final JLabel labelX;
     private final JLabel labelY;
     private final GameModel gameModel;
 
-    public RobotsPositionWindow(GameModel model, String title) {
-        super(title, false, true, true, true);
+    public RobotsPositionWindow(GameModel model) {
+        super(TRANSLATOR.translate("coordinates"), false, true, true, true);
 
-        labelX = new JLabel("X coordinate: " + Calculator.round(model.robotX()));
-        labelY = new JLabel("Y coordinate: " + Calculator.round(model.robotY()));
+        labelX = new JLabel(TRANSLATOR.translate("X_coordinate") + Calculator.round(model.robotX()));
+        labelY = new JLabel(TRANSLATOR.translate("Y_coordinate") + Calculator.round(model.robotY()));
 
         gameModel = model;
         gameModel.addObserver(this);
+        TRANSLATOR.addObserver(this);
 
         JPanel panel = new JPanel(new BorderLayout());
 
         panel.add(labelX, BorderLayout.NORTH);
         panel.add(labelY, BorderLayout.CENTER);
 
-        setSize(130, 70);
+        setSize(1300, 70);
 
         getContentPane().add(panel);
         pack();
@@ -51,11 +54,15 @@ public class RobotsPositionWindow extends JInternalFrame implements Observer {
             if (areEqual(GameModel.KEY_MODEL_UPDATE, key))
                 updateCoordinates(gameModel);
         }
+        if (areEqual(TRANSLATOR, o)) {
+            if (areEqual(LanguageTranslator.KEY_CHANGE_LANGUAGE, key))
+                setTitle(TRANSLATOR.translate("coordinates"));
+        }
     }
 
     private void updateCoordinates(GameModel model) {
-        labelX.setText("X coordinate: " + Calculator.round(model.robotX()));
-        labelY.setText("Y coordinate: " + Calculator.round(model.robotY()));
+        labelX.setText(TRANSLATOR.translate("X_coordinate") + Calculator.round(model.robotX()));
+        labelY.setText(TRANSLATOR.translate("Y_coordinate") + Calculator.round(model.robotY()));
     }
 
 

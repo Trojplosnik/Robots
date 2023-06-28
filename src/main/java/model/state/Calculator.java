@@ -48,28 +48,4 @@ public class Calculator {
         }
         return 0;
     }
-
-    public static double calculateNewDirection(double angularVelocity, double duration, double currentDirection) {
-        return asNormalizedRadians(angularVelocity * duration + currentDirection);
-    }
-
-    public static double calculateNewX(double velocity, double angularVelocity,
-                                       double currentX, double duration,
-                                       double newDirection, double currentDirection) {
-        double newX = currentX + (velocity / angularVelocity) * (Math.sin(newDirection) - Math.sin(currentDirection));
-        if (!Double.isFinite(newX)) {
-            newX = currentX + velocity * duration * Math.cos(currentDirection);
-        }
-        return newX;
-    }
-
-    public static double calculateNewY(double velocity, double angularVelocity,
-                                       double currentY, double duration,
-                                       double newDirection, double currentDirection) {
-        double newY = currentY - (velocity / angularVelocity) * (Math.cos(newDirection) - Math.cos(currentDirection));
-        if (!Double.isFinite(newY)) {
-            newY = currentY + velocity * duration * Math.sin(currentDirection);
-        }
-        return newY;
-    }
 }

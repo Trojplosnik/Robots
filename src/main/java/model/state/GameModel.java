@@ -59,10 +59,10 @@ public class GameModel extends Observable {
 
     protected void onModelUpdateEvent() {
         double distance = Calculator.distance(target.getX(), target.getY(), robot.getX(), robot.getY());
-        setChanged();
-        notifyObservers(KEY_MODEL_UPDATE);
-        clearChanged();
         if (distance < 0.5) {
+            setChanged();
+            notifyObservers(KEY_MODEL_UPDATE);
+            clearChanged();
             return;
         }
         double angleToTarget = Calculator.angleTo(robot.getX(), robot.getY(), target.getX(), target.getY());
@@ -71,6 +71,9 @@ public class GameModel extends Observable {
                 robot.getDirection(), Robot.maxAngularVelocity);
 
         moveRobot(Robot.maxVelocity, angularVelocity, 10);
+        setChanged();
+        notifyObservers(KEY_MODEL_UPDATE);
+        clearChanged();
     }
 
     public void moveRobot(double velocity, double angularVelocity, double duration) {
@@ -78,17 +81,40 @@ public class GameModel extends Observable {
         angularVelocity = Calculator.applyLimits(angularVelocity, -Robot.maxAngularVelocity, Robot.maxAngularVelocity);
 
 
-        double newDirection = Calculator.calculateNewDirection(angularVelocity, duration, robot.getDirection());
+        double newDirection = calculateNewDirection(angularVelocity, duration, robot.getDirection());
 
-        double newX = Calculator.calculateNewX(velocity, angularVelocity, robot.getX(), duration,
+        double newX = calculateNewX(velocity, angularVelocity, robot.getX(), duration,
                 newDirection, robot.getDirection());
-        double newY = Calculator.calculateNewY(velocity, angularVelocity, robot.getY(), duration,
+        double newY = calculateNewY(velocity, angularVelocity, robot.getY(), duration,
                 newDirection, robot.getDirection());
 
         robot.setX(newX);
         robot.setY(newY);
 
         robot.setDirection(newDirection);
+    }
+    public static double calculateNewX(double velocity, double angularVelocity,
+                                       double currentX, double duration,
+                                       double newDirection, double currentDirection) {
+        double newX = currentX + (velocity / angularVelocity) * (Math.sin(newDirection) - Math.sin(currentDirection));
+        if (!Double.isFinite(newX)) {
+            newX = currentX + velocity * duration * Math.cos(currentDirection);
+        }
+        return newX;
+    }
+
+    public static double calculateNewY(double velocity, double angularVelocity,
+                                       double currentY, double duration,
+                                       double newDirection, double currentDirection) {
+        double newY = currentY - (velocity / angularVelocity) * (Math.cos(newDirection) - Math.cos(currentDirection));
+        if (!Double.isFinite(newY)) {
+            newY = currentY + velocity * duration * Math.sin(currentDirection);
+        }
+        return newY;
+    }
+
+    public static double calculateNewDirection(double angularVelocity, double duration, double currentDirection) {
+        return Calculator.asNormalizedRadians(angularVelocity * duration + currentDirection);
     }
 
 }
